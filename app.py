@@ -29,11 +29,9 @@ def llm_prompt(style, n_words):
         description_style = ""
 
     image_prompt = f"""
-    You are ImageAnalyzerGPT.
+    You are ImageAnalyzerGPT. {description_style} 
 
-    You have 6 distinct tasks to complete about this image.
-
-    {description_style} 
+    You have a number of distinct tasks to complete about this image.
 
     Task 1: title
     A short title for this image.
