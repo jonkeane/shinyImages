@@ -145,11 +145,14 @@ app_ui = ui.page_sidebar(
     ),
     ui.layout_columns(
         ui.div(
-            ui.output_ui("display_image"),
+            ui.output_ui(
+                "display_image",
+                style="height: 55vh; display: flex; justify-content: center; align-items: center; overflow: hidden;"),
             ui.div(
                 ui.output_ui("chat_container"),
-                style="height: 30vh; overflow-y: auto; display: flex; flex-direction: column-reverse;"
+                style="height: 34vh; overflow-y: auto; display: flex; flex-direction: column-reverse;"
             ),
+            style="display: flex; flex-direction: column; height: 90vh; justify-content: space-between;"
         ),
         ui.output_ui("info_card"),
 
@@ -272,7 +275,7 @@ def server(input, output, session):
     @output
     @render.ui
     def display_image():
-        return ui.img(src=input.url(), style="height: 60vh; max-width: 100%; max-height: 100%;")
+        return ui.img(src=input.url(), style="height: 55vh; max-width: 100%; max-height: 100%;")
 
     @output
     @render.ui
