@@ -40,7 +40,8 @@ def llm_prompt(style, n_words):
     Your task is to describe images in detail. 
     Use as much detail as possible, describing the foreground, background, and subjects in the image. 
     Use as much descriptive language as possible. 
-    This description should be as long as is necessary to fully describe the image use about {n_words} words in this description. 
+    This description should be as long as is necessary to fully describe the image.
+    This description must be about {n_words * 1.5} tokens long. 
 
     Task 1: descriptive tags
     Your task is to tag images in detail. Use as many tags as possible and make the tags descriptive. Additionally add in fun conceptual tags for social media.
@@ -129,8 +130,8 @@ app_ui = ui.page_sidebar(
         ),
         ui.input_numeric(
             "n_words",
-            "number of words",
-            value=250,
+            "description word limit",
+            value=100,
         ),
         ui.input_action_button("go", "Start"),
         ui.tags.script("""
@@ -270,7 +271,7 @@ def image_card(image_details: ImageDetails) -> ui.TagChild:
 
 def server(input, output, session):
     chat = ui.Chat("chat")
-    card = reactive.value(parse_to_card(""))
+    card = reactive.Value("")
 
     @output
     @render.ui
@@ -327,6 +328,7 @@ def server(input, output, session):
             stream2 = (update_card(chunk, output) async for chunk in stream)
             await chat.append_message_stream(stream2)
 
+    @output
     @render.ui
     @reactive.event(input.go)
     def chat_container():
