@@ -3,7 +3,7 @@ from typing import TypedDict
 import re, yaml
 
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -148,7 +148,7 @@ app_ui = ui.page_sidebar(
             ui.output_ui("display_image"),
             ui.div(
                 ui.output_ui("chat_container"),
-                style="height: 50vh; overflow-y: auto;"
+                style="height: 30vh; overflow-y: auto; display: flex; flex-direction: column-reverse;"
             ),
         ),
         ui.output_ui("info_card"),
@@ -272,7 +272,7 @@ def server(input, output, session):
     @output
     @render.ui
     def display_image():
-        return ui.img(src=input.url(), style="max-width: 100%; max-height: 100%;")
+        return ui.img(src=input.url(), style="height: 60vh; max-width: 100%; max-height: 100%;")
 
     @output
     @render.ui
@@ -307,7 +307,6 @@ def server(input, output, session):
             return chunk.content
 
         stream2 = (update_card(chunk, output) async for chunk in stream)
-
         await chat.append_message_stream(stream2)
 
         # Allow the user to ask follow up questions
@@ -323,7 +322,6 @@ def server(input, output, session):
                 return chunk.content
 
             stream2 = (update_card(chunk, output) async for chunk in stream)
-
             await chat.append_message_stream(stream2)
 
     @render.ui
