@@ -24,7 +24,7 @@ class ImageDetails(TypedDict):
 
 def llm_prompt(style, n_words):
     if style != "":
-        description_style = f"This should be written in the style of {style}."
+        description_style = f"IMPORTANT: This whole response should be written in the style of {style}."
     else:
         description_style = ""
 
@@ -146,20 +146,16 @@ app_ui = ui.page_sidebar(
         """)
     ),
     ui.layout_columns(
-        ui.column(
-            12,
-            ui.div(
-                ui.output_ui("display_image"),
-            ),
+        ui.div(
+            ui.output_ui("display_image"),
             ui.div(
                 ui.output_ui("chat_container"),
                 style="height: 50vh; overflow-y: auto;"
             ),
         ),
-        ui.column(
-            12,
-            ui.output_ui("info_card"),
-        ),
+        ui.output_ui("info_card"),
+
+        col_widths={"sm": (12), "lg": (6)},
     ),
     title = "Image Describer",
 )
