@@ -146,7 +146,7 @@ app_ui = ui.page_sidebar(
             ),
             style="display: flex; flex-direction: column; height: 90vh; justify-content: space-between;"
         ),
-        ui.div(id = "cardwrapper", style = "display: grid; grid-template-columns: 1fr;"),
+        ui.div(id = "card_container", style = "display: grid; grid-template-columns: 1fr;"),
         col_widths={"sm": (12), "lg": (6)},
     ),
     title = "Image Describer",
@@ -159,6 +159,17 @@ def server(input, output, session):
     @render.ui
     def display_image():
         return ui.img(src=input.url(), style="height: 55vh;")
+
+    def update_card(chunk, output):
+        output.append(chunk.content)
+        # try to update the card, but don't update if there's a parsing error
+        try:
+            card_update = parse_to_card("".join(output))
+            ui.insert_ui(card_update, "#card_container", immediate = True)
+            ui.remove_ui(selector = "#card_container > div:not(:last-child)", immediate = True)
+        except ValueError:
+            pass
+        return chunk.content
 
     @reactive.effect
     @reactive.event(input.go)
@@ -182,16 +193,6 @@ def server(input, output, session):
         stream = client.astream(user_prompt)
 
         output = []
-        def update_card(chunk, output):
-            output.append(chunk.content)
-            # try to update the card, but don't update if there's a parsing error
-            try:
-                card_update = parse_to_card("".join(output))
-                ui.insert_ui(card_update, "#cardwrapper", immediate = True)
-                ui.remove_ui(selector = "#cardwrapper > div:not(:last-child)", immediate = True)
-            except ValueError:
-                pass
-            return chunk.content
         stream2 = (update_card(chunk, output) async for chunk in stream)
         await chat.append_message_stream(stream2)
 
@@ -202,16 +203,6 @@ def server(input, output, session):
             stream = client.astream(user_message)
 
             output = []
-            def update_card(chunk, output):
-                output.append(chunk.content)
-                # try to update the card, but don't update if there's a parsing error
-                try:
-                    card_update = parse_to_card("".join(output))
-                    ui.insert_ui(card_update, "#card", immediate = True)
-                    ui.remove_ui(selector = "#card > div:not(:last-child)", immediate = True)
-                except ValueError:
-                    pass
-                return chunk.content
             stream2 = (update_card(chunk, output) async for chunk in stream)
             await chat.append_message_stream(stream2)
             
