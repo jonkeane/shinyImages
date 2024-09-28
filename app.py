@@ -1,13 +1,9 @@
-import time
-
 from shiny import App, reactive, render, ui
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.tools import InjectedToolArg, tool
-from typing_extensions import Annotated
 
 from card import parse_to_card
 
@@ -137,14 +133,18 @@ app_ui = ui.page_sidebar(
     ),
     ui.layout_columns(
         ui.div(
-            ui.output_ui(
-                "display_image",
-                style="height: 55vh; display: flex; justify-content: center; align-items: center; overflow: hidden;"),
+            ui.div(
+                ui.output_ui(
+                    "display_image",
+                    style="padding-bottom: 10px; display: flex; justify-content: center; align-items: flex-start; overflow: hidden;"
+                ),
+                style="flex-shrink: 1;"
+            ),
             ui.div(
                 ui.output_ui("chat_container"),
-                style="height: 34vh; overflow-y: auto; display: flex; flex-direction: column-reverse;"
+                style="flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column-reverse;"
             ),
-            style="display: flex; flex-direction: column; height: 90vh; justify-content: space-between;"
+            style="display: flex; flex-direction: column; height: calc(100vh - 40px - 40px); justify-content: space-between;"
         ),
         ui.div(id = "card_container", style = "display: grid; grid-template-columns: 1fr;"),
         col_widths={"sm": (12), "lg": (6)},
@@ -154,11 +154,12 @@ app_ui = ui.page_sidebar(
 
 def server(input, output, session):
     chat = ui.Chat("chat")
+    client = None
 
     @output
     @render.ui
     def display_image():
-        return ui.img(src=input.url(), style="height: 55vh;")
+        return ui.img(src=input.url(), style="max-height: 50vh; display: flex; justify-content: center; align-items: center; overflow: hidden;")
 
     def update_card(chunk, output):
         output.append(chunk.content)
@@ -178,7 +179,9 @@ def server(input, output, session):
 
         # Start a new conversation
         history = InMemoryChatMessageHistory()
+        nonlocal client
         client = RunnableWithMessageHistory(prompt | model, lambda: history)
+        card_output = []
 
         user_prompt = HumanMessage(
             content=[
@@ -191,20 +194,20 @@ def server(input, output, session):
         )
 
         stream = client.astream(user_prompt)
-
-        output = []
-        stream2 = (update_card(chunk, output) async for chunk in stream)
+        
+        stream2 = (update_card(chunk, card_output) async for chunk in stream)
         await chat.append_message_stream(stream2)
 
-        # Allow the user to ask follow up questions
-        @chat.on_user_submit
-        async def _():
-            user_message = HumanMessage(content=chat.user_input())
-            stream = client.astream(user_message)
+    # Allow the user to ask follow up questions
+    @chat.on_user_submit
+    async def _():
+        print(chat.user_input())
+        user_message = HumanMessage(content=chat.user_input())
+        card_output = []
+        stream = client.astream(user_message)
 
-            output = []
-            stream2 = (update_card(chunk, output) async for chunk in stream)
-            await chat.append_message_stream(stream2)
+        stream2 = (update_card(chunk, card_output) async for chunk in stream)
+        await chat.append_message_stream(stream2)
             
     @output
     @render.ui
