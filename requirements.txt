@@ -1,5 +1,4 @@
 pyyaml
-shiny
+shiny @ git+https://github.com/posit-dev/py-shiny@markdown-stream-context
 python-dotenv
-tokenizers
-langchain-openai
+chatlas[openai]

@@ -1,0 +1,18 @@
+.card-header p { 
+  margin-bottom: 0; 
+}
+
+#image_container img {
+  object-fit: scale-down;
+  object-position: top;
+  border-radius: var(--bs-border-radius, 1rem);
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.offcanvas-container {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1;
+}
